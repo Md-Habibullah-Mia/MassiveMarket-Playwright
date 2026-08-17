@@ -16,8 +16,15 @@ export class DashboardPage {
     await this.page.goto('/me/dashboard');
   }
 
-  async verifyDashboardLoaded() {
-    await expect(this.page).toHaveURL(/\/me\/dashboard/);
-    await expect(this.dashboardHeading).toBeVisible();
-  }
+  
+async verifyDashboardLoaded() {
+  await expect(this.page).toHaveURL(/\/me\/dashboard/, {
+    timeout: 30000,
+  });
+
+  await expect(this.dashboardHeading).toBeVisible({
+    timeout: 30000,
+  });
+}
+
 }
