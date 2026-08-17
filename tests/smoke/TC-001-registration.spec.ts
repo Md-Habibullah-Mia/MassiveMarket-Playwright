@@ -9,16 +9,16 @@ test.describe('Smoke - Registration', () => {
 
     const uniqueEmail = `qa_${Date.now()}@example.com`;
 
-    await registrationPage.goto();
+await registrationPage.goto();
 
-    await registrationPage.register({
-      firstName: 'QA',
-      middleName: 'Automation',
-      lastName: 'Tester',
-      email: uniqueEmail,
-      phone: '+17365632445',
-      password: 'Test@12345',
-    });
+await registrationPage.register({
+  firstName: 'QA',
+  middleName: 'Automation',
+  lastName: 'Tester',
+  email: uniqueEmail,
+  phone: process.env.TEST_PHONE!,
+  password: process.env.TEST_PASSWORD!,
+});
 
     // TODO:
     // Add the exact post-registration success assertion
