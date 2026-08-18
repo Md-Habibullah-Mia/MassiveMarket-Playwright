@@ -1,30 +1,77 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Page, Locator } from '@playwright/test';
 
 export class RegistrationPage {
-  constructor(private readonly page: Page) {}
+  private readonly firstName: Locator;
+  private readonly middleName: Locator;
+  private readonly lastName: Locator;
+  private readonly email: Locator;
+  private readonly phone: Locator;
+  private readonly referralCode: Locator;
+  private readonly password: Locator;
+  private readonly confirmPassword: Locator;
+  private readonly termsCheckbox: Locator;
+  private readonly createAccountButton: Locator;
 
-  private firstName = this.page.locator('input[placeholder="Rohan"]');
-  private middleName = this.page.locator('input[placeholder="Optional"]');
-  private lastName = this.page.locator('input[placeholder="Iban"]');
-  private email = this.page.locator('input[type="email"]');
-  private phone = this.page.locator('input[type="tel"]');
-  private referralCode = this.page.locator(
-    'input[placeholder="Code from your referrer"]'
-  );
-  private password = this.page.locator('input[type="password"]').nth(0);
-  private confirmPassword = this.page.locator('input[type="password"]').nth(1);
+  constructor(private readonly page: Page) {
+    this.firstName = this.page.getByPlaceholder('Rohan', {
+      exact: true,
+    });
 
-  private termsCheckbox = this.page.getByRole('checkbox', {
-    name: /terms of service and privacy policy/i,
-  });
+    this.middleName = this.page.getByPlaceholder('Optional', {
+      exact: true,
+    });
 
-  private createAccountButton = this.page.getByRole('button', {
-    name: 'Create Account',
-  });
+    this.lastName = this.page.getByPlaceholder('Iban', {
+      exact: true,
+    });
+
+    this.email = this.page.locator('input[type="email"]');
+
+    this.phone = this.page.locator('input[type="tel"]');
+
+    this.referralCode = this.page.getByPlaceholder(
+      'Code from your referrer',
+      {
+        exact: true,
+      }
+    );
+
+    this.password = this.page
+      .locator('input[type="password"]')
+      .nth(0);
+
+    this.confirmPassword = this.page
+      .locator('input[type="password"]')
+      .nth(1);
+
+    this.termsCheckbox = this.page.getByRole('checkbox', {
+      name: /terms of service and privacy policy/i,
+    });
+
+    this.createAccountButton = this.page.getByRole('button', {
+      name: 'Create Account',
+    });
+  }
 
   async goto() {
-    await this.page.goto('/auth/sign-up');
-    await expect(this.createAccountButton).toBeVisible();
+    await this.page.goto('/auth/sign-up', {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
+    });
+
+    await expect(this.createAccountButton).toBeVisible({
+      timeout: 10000,
+    });
+  }
+
+  /**
+   * Types into a field using pressSequentially to properly trigger
+   * React's synthetic events on controlled inputs.
+   */
+  private async typeIntoField(locator: Locator, value: string) {
+    await locator.click();
+    await locator.clear();
+    await locator.pressSequentially(value, { delay: 40 });
   }
 
   async register(data: {
@@ -37,29 +84,47 @@ export class RegistrationPage {
     password: string;
     confirmPassword?: string;
   }) {
-    await this.firstName.fill(data.firstName);
+    // First Name
+    await this.firstName.waitFor({ state: 'visible' });
+    await expect(this.firstName).toBeEditable();
+    await this.typeIntoField(this.firstName, data.firstName);
+    await expect(this.firstName).toHaveValue(data.firstName);
 
+    // Middle Name
     if (data.middleName) {
-      await this.middleName.fill(data.middleName);
+      await this.typeIntoField(this.middleName, data.middleName);
     }
 
-    await this.lastName.fill(data.lastName);
-    await this.email.fill(data.email);
-    await this.phone.fill(data.phone);
+    // Last Name
+    await this.typeIntoField(this.lastName, data.lastName);
 
+    // Email
+    await this.typeIntoField(this.email, data.email);
+
+    // Phone
+    await this.typeIntoField(this.phone, data.phone);
+
+    // Referral Code
     if (data.referralCode) {
-      await this.referralCode.fill(data.referralCode);
+      await this.typeIntoField(this.referralCode, data.referralCode);
     }
 
-    await this.password.fill(data.password);
+    // Password
+    await this.typeIntoField(this.password, data.password);
 
-    await this.confirmPassword.fill(
+    // Confirm Password
+    await this.typeIntoField(
+      this.confirmPassword,
       data.confirmPassword ?? data.password
     );
 
+    // Terms & Privacy Policy
     await this.termsCheckbox.check();
 
-    await expect(this.createAccountButton).toBeEnabled();
+    // Create Account
+    await expect(this.createAccountButton).toBeEnabled({
+      timeout: 10000,
+    });
 
     await this.createAccountButton.click();
   }
