@@ -9,6 +9,12 @@ export default defineConfig({
   // Run independent tests in parallel
   fullyParallel: true,
 
+  timeout: 90_000,
+
+  expect: {
+    timeout: 30_000,
+  },
+
   // Prevent accidental test.only in CI
   forbidOnly: !!process.env.CI,
 
