@@ -19,6 +19,8 @@ jobs:
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       env:
+        LOGIN_TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+        LOGIN_TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         TEST_PHONE: ${{ secrets.TEST_PHONE }}
       run: npx playwright test
